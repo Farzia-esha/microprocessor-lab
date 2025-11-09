@@ -1,0 +1,825 @@
+1.GCD of 2 num
+----------------
+.model small
+.stack 100h
+.data
+num1 dw 45h
+num2 dw 30h
+gcd dw ? 
+
+.code
+main proc
+    mov ax, @data
+    mov ds,ax
+    
+    mov ax,num1
+    mov bx,num2
+    
+  looop:
+    cmp ax,bx
+    je exit
+    jb swap ;(ax>bx)
+    
+    sub ax,bx
+    jmp looop
+    
+  swap:
+    sub bx,ax 
+    jmp looop
+    
+  exit:
+    mov gcd,ax
+
+    mov ah,4ch
+    int 21h
+    main endp
+end main
+
+......lcm.....
+.model small
+.stack 100h
+.data
+num1 dw 45h
+num2 dw 30h
+gcd dw ?
+lcm dw ?
+
+.code 
+main proc
+    mov ax,@data
+    mov ds,ax
+    
+    mov ax,num1
+    mov bx,num2
+    
+looop:
+    cmp ax,bx
+    je got_gcd
+    jb swap (ax<bx)
+    
+    sub ax,bx
+    jmp looop
+swap:
+    sub bx,ax
+    jmp looop
+got_gcd:
+    mov gcd,ax   
+    
+    ;...lcm=a*b)/gcd
+    
+    mov ax,num1
+    mov bx,num2
+    mul bx
+    div gcd
+    mov lcm,ax
+    
+    
+    mov ah,4ch
+    int 21h
+    main endp
+end main
+    
+.........Pos/neg.....
+.model small
+.stack 100h
+.data 
+
+num1 dw 0fff0h
+
+P dw 'positive $'
+N dw 'negative $'
+
+
+.code 
+main proc
+    mov ax,@data
+    mov ds,ax
+    
+    mov ax,num1
+    test ax,8000h
+    js negative
+    
+    pos:
+        lea dx,P
+        mov ah,9
+        int 21h
+        jmp exit
+    negative:
+        lea dx,N
+        mov ah,9
+        int 21h
+        
+   exit:
+    mov ah,4ch
+    int 21h
+    main endp
+end main
+
+..................
+DATA SEGMENT
+NUM DB 12H
+MES1 DB 10,13,'DATA IS POSITIVE $'
+MES2 DB 10,13,'DATA IS NEGATIVE $'
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+    MOV AL,NUM
+    ROL AL,1
+    JC NEGA
+    MOV DX,OFFSET MES1
+    JMP EXIT
+NEGA: 
+    MOV DX,OFFSET MES2
+EXIT:
+    MOV AH,09H
+    INT 21H
+    MOV AH,4CH
+    INT 21H
+CODE ENDS
+END START
+
+
+
+
+    ............odd/even.......
+DATA SEGMENT
+X DW 27H
+EV DB 'EVEN$',0
+OD DB 'ODD$',0
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+
+    MOV AX,X
+    TEST AX,01H
+    JNZ ODD
+
+EVEN: LEA DX,EV
+      MOV AH,09H
+      INT 21H
+      JMP EXIT
+
+ODD:  LEA DX,OD
+      MOV AH,09H
+      INT 21H
+
+EXIT: MOV AH,4CH
+      INT 21H
+CODE ENDS
+END START
+
+...........sum of n nums........
+DATA SEGMENT
+ARR DW 10H,20H,30H,40H,50H
+LEN EQU ($-ARR)/2
+SUM DW ?
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+
+    LEA SI,ARR
+    XOR AX,AX
+    MOV CX,LEN
+
+L:  ADD AX,[SI]
+    ADD SI,2
+    LOOP L
+
+    MOV SUM,AX
+    MOV AH,4CH
+    INT 21H
+CODE ENDS
+END START
+
+.......largest num in array....
+
+DATA SEGMENT
+X DW 10H,52H,30H,40H,50H
+LAR DW ?
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+
+    LEA SI,X
+    MOV AX,[SI]
+    MOV CX,4
+
+NEXT: CMP AX,[SI+2]
+      JA KEEP
+      MOV AX,[SI+2]
+
+KEEP: ADD SI,2
+      LOOP NEXT
+
+    MOV LAR,AX
+    MOV AH,4CH
+    INT 21H
+CODE ENDS
+END START
+
+........ smallest num    ..........
+
+DATA SEGMENT
+X DW 60H,20H,30H,40H,50H
+SM DW ?
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+
+    LEA SI,X
+    MOV AX,[SI]
+    MOV CX,4
+
+N:  CMP AX,[SI+2]
+    JB OK
+    MOV AX,[SI+2]
+
+OK: ADD SI,2
+    LOOP N
+
+    MOV SM,AX
+    MOV AH,4CH
+    INT 21H
+CODE ENDS
+END START
+
+...... Search Character in String   .......
+
+
+DATA SEGMENT
+MSG DB 'HELLO'
+CNT EQU $-MSG
+SRC DB 'E'
+FND DB 'FOUND$',0
+NF  DB 'NOT FOUND$',0
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+
+    LEA SI,MSG
+    MOV AL,SRC
+    MOV CX,CNT
+
+REP_SCAN:
+    SCASB
+    JZ FOUND
+    LOOP REP_SCAN
+
+NOTF: LEA DX,NF
+      MOV AH,09H
+      INT 21H
+      JMP EXIT
+
+FOUND: LEA DX,FND
+       MOV AH,09H
+       INT 21H
+
+EXIT: MOV AH,4CH
+      INT 21H
+CODE ENDS
+END START
+
+
+...................binary to bcd...........
+
+DATA SEGMENT
+BIN DW 01A9H
+BCD DB 2 DUP(0)
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+    MOV AX,BIN
+    MOV CL,64H
+    DIV CL
+    MOV BCD+1,AL
+    MOV AL,AH
+    MOV AH,00H
+    MOV CL,0AH
+    DIV CL
+    MOV CL,04
+    ROR AL,CL
+    ADD AL,AH
+    MOV AH,4CH
+    INT 21H
+CODE ENDS
+END START
+
+............bcd - binary,,,,,,,,,
+
+DATA SEGMENT
+BCD DW 27H
+BIN DW ?
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+    MOV AX,BCD
+    AND AX,07H
+    MOV BX,AX
+    MOV AX,BCD
+    AND AX,0F0H
+    MOV CX,0AH
+    MUL CX
+    ADD AX,BX
+    MOV BIN,AX
+    MOV AH,4CH
+    INT 21H
+CODE ENDS
+END START
+
+
+.........add of n nums/arrays......
+DATA SEGMENT
+ARR DW 0010H,0020H,0030H,0040H,0050H
+LEN EQU ($-ARR)/2
+SUM DW ?
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+    LEA SI,ARR
+    XOR AX,AX
+    MOV CX,LEN
+UP: 
+    ADC AX,[SI]
+    ADD SI,2
+    DEC CX
+    JNZ UP
+    MOV SUM,AX
+    MOV AH,4CH
+    INT 21H
+CODE ENDS
+END START
+
+.......sub of n nums...........
+DATA SEGMENT
+ARR DW 50H,10H,20H,10H,05H
+LEN EQU ($-ARR)/2
+DIF DW ?
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+    LEA SI,ARR
+    CLC
+    MOV CX,LEN-1
+    MOV AX,[SI]
+UP:
+    SUB AX,[SI+2]
+    ADD SI,2
+    DEC CX
+    JNZ UP
+    MOV DIF,AX
+    MOV AH,4CH
+    INT 21H
+CODE ENDS
+END START
+
+........./// largest num in series.........
+DATA SEGMENT
+X DW 0010H,52H,30H,40H,50H
+LAR DW ?
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+    MOV CX,05H
+    LEA SI,X
+    MOV AX,[SI]
+    DEC CX
+UP:
+    CMP AX,[SI+2]
+    JA CTINUE
+    MOV AX,[SI+2]
+CTINUE:
+    ADD SI,2
+    DEC CX
+    JNZ UP
+    MOV LAR,AX
+    MOV AH,4CH
+    INT 21H
+CODE ENDS
+END START
+
+
+.......//// smallest num in series.......
+
+
+DATA SEGMENT
+X DW 0060H,0020H,0030H,0040H,0050H
+MES DB 10,13,'SMALLEST NUMBER AMONG THE SERIES IS $'
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+    MOV CX,05H
+    LEA SI,X
+    MOV AX,[SI]
+    DEC CX
+UP:
+    CMP AX,[SI+2]
+    JB CONTINUE
+    MOV AX,[SI+2]
+CONTINUE:
+    ADD SI,2
+    DEC CX
+    JNZ UP
+    AAM
+    ADD AX,3030H
+    MOV BX,AX
+    MOV AH,09H
+    LEA DX,MES
+    INT 21H
+    MOV DL,BH
+    MOV AH,02H
+    INT 21H
+    MOV DL,BL
+    INT 21H
+    MOV AH,4CH
+    INT 21H
+CODE ENDS
+END START
+
+
+.........1. Sort numbers in ascending order........
+
+DATA SEGMENT
+X DW 42H,34H,26H,17H,09H
+LEN EQU 05
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+    MOV BX,LEN-1
+    MOV CX,BX
+UP1:
+    MOV BX,CX
+    LEA SI,X
+UP:
+    MOV AX,[SI]
+    MOV DX,[SI+2]
+    CMP AX,DX
+    JB DOWN
+    MOV [SI],DX
+    MOV [SI+2],AX
+DOWN:
+    ADD SI,2
+    DEC BX
+    JNZ UP
+    DEC CX
+    JNZ UP1
+    MOV AH,4CH
+    INT 21H
+CODE ENDS
+END START
+
+
+........transfer string........
+DATA SEGMENT
+STR1 DB 'HOW ARE YOU'
+LEN EQU $-STR1
+STR2 DB 20 DUP(0)
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA,ES:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+    MOV ES,AX
+    LEA SI,STR1
+    LEA DI,STR2
+    MOV CX,LEN
+    CLD
+    REP MOVSB
+    MOV AH,4CH
+    INT 21H
+CODE ENDS
+END START
+
+................
+3. Search Character in String
+
+DATA SEGMENT
+MSG DB 'HELLO'
+CNT EQU $-MSG
+SRC EQU 'E'
+MSG1 DB 10,13,'CHARACTER FOUND$'
+MSG2 DB 10,13,'CHARACTER NOT FOUND$'
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE,DS:DATA,ES:DATA
+START:
+    MOV AX,DATA
+    MOV DS,AX
+    MOV ES,AX
+    LEA SI,MSG
+    MOV AL,SRC
+    MOV CL,CNT
+    MOV CH,00H
+    CLD
+UP:
+    SCASB
+    JZ DOWN
+    LOOP UP
+    LEA DX,MSG2
+    MOV AH,09H
+    INT 21H
+    JMP EXIT
+DOWN:
+    LEA DX,MSG1
+    MOV AH,09H
+    INT 21H
+EXIT:
+    MOV AH,4CH
+    INT 21H
+CODE ENDS
+END START
+
+
+..../// factorial.....
+.model small
+.stack 100h
+.data
+n db 5
+.code
+main proc
+    mov al,1
+    mov bl,n
+L1:
+    mul bl
+    dec bl
+    cmp bl,1
+    jge L1
+
+    add al,30h
+    mov dl,al
+    mov ah,02h
+    int 21h
+
+    mov ax,4C00h
+    int 21h
+main endp
+end main
+
+
+.......sum of array....
+.model small
+.stack 100h
+.data
+arr db 1,2,3,4,5
+.code
+main proc
+    mov cx,5
+    mov si,offset arr
+    mov ax,0
+L1:
+    add al,[si]
+    inc si
+    loop L1
+
+    add al,30h
+    mov dl,al
+    mov ah,02h
+    int 21h
+
+    mov ax,4C00h
+    int 21h
+main endp
+end main
+
+
+....multi of 2 num.........
+.model small
+.stack 100h
+.data
+a db 5
+b db 3
+.code
+main proc
+    mov al,a
+    mov bl,b
+    mul bl
+    add al,30h
+    mov dl,al
+    mov ah,02h
+    int 21h
+
+    mov ax,4C00h
+    int 21h
+main endp
+end main
+
+
+
+.....sub 2 num......
+.model small
+.stack 100h
+.data
+a db 9
+b db 3
+.code
+main proc
+    mov al,a
+    sub al,b
+    add al,30h
+    mov dl,al
+    mov ah,02h
+    int 21h
+
+    mov ax,4C00h
+    int 21h
+main endp
+end main
+
+
+
+.....add  2 num.....
+.model small
+.stack 100h
+.data
+a db 9
+b db 6
+.code
+main proc
+    mov al,a
+    add al,b
+    add al,30h
+    mov dl,al
+    mov ah,02h
+    int 21h
+
+    mov ax,4C00h
+    int 21h
+main endp
+end main
+
+...../largest between 2 num ....
+.model small
+.stack 100h
+.data
+a db 15
+b db 9
+.code
+main proc
+    mov al,a
+    cmp al,b
+    ja BIG
+    mov al,b
+BIG:
+    add al,30h
+    mov dl,al
+    mov ah,02h
+    int 21h
+
+    mov ax,4C00h
+    int 21h
+main endp
+end main
+
+......odd/even.....
+.model small
+.stack 100h
+.data
+num db 7
+.code
+main proc
+    mov al,num
+    and al,01h
+    cmp al,0
+    je EVEN
+ODD:
+    mov dl,'O'
+    jmp EXIT
+EVEN:
+    mov dl,'E'
+EXIT:
+    mov ah,02h
+    int 21h
+
+    mov ax,4C00h
+    int 21h
+main endp
+end main
+
+...../print 1-10....
+
+
+.model small
+.stack 100h
+.data
+num db 1
+.code
+main proc
+    mov cx,10
+L1:
+    mov dl,num
+    add dl,30h
+    mov ah,02h
+    int 21h
+    inc num
+    loop L1
+
+    mov ax,4C00h
+    int 21h
+main endp
+end main
+
+
+
+..... a - z ....
+.model small
+.stack 100h
+.code
+main proc
+    mov dl,'A'
+    mov cx,26
+L1:
+    mov ah,02h
+    int 21h
+    inc dl
+    loop L1
+
+    mov ax,4C00h
+    int 21h
+main endp
+end main
+
+
+.....reverse.....
+mov ax, number
+mov bx, 0
+L:
+mov dx, 0
+div 10
+; AX=quotient, DX=remainder
+mov cx, bx
+mov bx, dx
+add bx, cx*10    ; pseudo: store result as decimal reverse
+cmp ax, 0
+jne L
+
+
+
+....sum of 10 num....
+mov ax, 0
+mov bx, 1
+mov cx, 10
+L:
+add ax, bx
+inc bx
+loop L
+
+
+
+
+
+
+    
